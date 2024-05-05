@@ -11,10 +11,10 @@ window.geometry("" + str(WIDTH) + "x" + str(HEIGHT))
 canvas = tk.Canvas(window, bg='grey75', width=WIDTH, height=HEIGHT)
 canvas.pack()
 
-c1 = c.Cuboid(10, -20, 50, 20,20,20)
-c2 = c.Cuboid(-20, -20, 40, 20,30,40)
-c3 = c.Cuboid(10, -20, 80, 50,40,20)
-c4 = c.Cuboid(-20, -20, 100, 20,20,20)
+c1 = c.Cuboid(10, -40, 50, 20,20,20, 'red')
+c2 = c.Cuboid(-30, -20, 40, 20,30,40, 'green')
+c3 = c.Cuboid(10, -25, 80, 50,40,20, 'blue')
+c4 = c.Cuboid(-35, -30, 100, 20,20,20, 'orange')
 
 scene = Scene([c1,c2,c3,c4], canvas, HEIGHT, WIDTH)
 scene.render()
@@ -81,6 +81,9 @@ def fovDown(event):
     scene.fovDown()
     scene.refresh()
 
+def debugDraw(event):
+    scene.debugDraw()
+
 window.bind('<Up>', mv_up)
 window.bind('<Down>', mv_down)
 window.bind('<Left>', mv_left)
@@ -95,6 +98,7 @@ window.bind('q', rotZcw)
 window.bind('e', rotZccw)
 window.bind('r', fovUp)
 window.bind('f', fovDown)
+window.bind('<Escape>', debugDraw)
 
 
 window.mainloop()

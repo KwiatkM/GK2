@@ -1,4 +1,5 @@
 from cuboid import Cuboid
+from quad import Quad
 from tkinter import Canvas
 from math import pi
 import transformations as t
@@ -27,11 +28,49 @@ class Scene():
                                                              self.fov,
                                                              self.near_plane_distance,
                                                              self.far_plane_distance)
-        
+
+    def debugDraw(self):
+        self.canvas.delete("all")
+        for i,q in enumerate(self.quads):
+            
+            input()
+            print('' + str(i) +'. '+ str(q) + ' ' + str(q.getMaxZ()))
+            q.draw(self.canvas)   
         
     def render(self):
+        quads = []
         for c in self.cuboids:
-            c.projectAndDraw(self.projection_matrix, self.canvas, self.cam_height, self.cam_width)
+            c.project(self.projection_matrix, self.cam_height, self.cam_width)
+            quads.extend(c.getQuads())
+        
+        #print(quads)
+        #quads.sort(reverse=True) # !!!!!!!!!
+        sorted = quads
+        sorted.sort(key=lambda x:x.maxz, reverse=True)
+        for i,q in enumerate(sorted):
+            
+            j = i+1
+            while j < len(sorted):
+                 
+                if sorted[i].isCloserThan(quads[j]): sorted.insert(j,sorted.pop(i))
+
+                j+=1
+
+            
+            #for q in sorted:
+            #    print(q)
+            #print()
+        
+
+        self.quads = sorted
+        #print(quads)
+
+        for i,q in enumerate(sorted):
+            #print('' + str(i) +'. '+ str(q) + ' ' + str(q.getMaxZ()))
+            #input()
+            q.draw(self.canvas)
+            
+
         self.canvas.create_text(35,10,text='fov: ' + str(round((self.fov * (360/(2*pi))), 2)))
     
     def refresh(self):
