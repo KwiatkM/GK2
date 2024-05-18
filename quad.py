@@ -14,11 +14,11 @@ class Quad:
         self.points3D = points3D
         self.pp = pp
         self.color = color
-        self.normal = np.cross(points3D[1] - points3D[0],points3D[3] - points3D[0])
+        self.normal = np.cross(points3D[1] - points3D[0],points3D[2] - points3D[0])
         self.d = np.dot(points3D[0], self.normal)
+        self.facingCamera = False
         if self.d < 0:
-            self.normal = self.normal * -1
-            self.d = self.d * -1
+            self.facingCamera = True
         self.maxz = self.getMaxZ()
 
     def getMaxZ(self) -> float:
@@ -86,38 +86,23 @@ class Quad:
         canvas.create_line(self.pp[1][0][0], self.pp[1][1][0], self.pp[2][0][0], self.pp[2][1][0], fill='black', width=1)
         canvas.create_line(self.pp[2][0][0], self.pp[2][1][0], self.pp[3][0][0], self.pp[3][1][0], fill='black', width=1)
         canvas.create_line(self.pp[3][0][0], self.pp[3][1][0], self.pp[0][0][0], self.pp[0][1][0], fill='black', width=1)
+        #canvas.create_oval(self.pp[0][0][0], self.pp[0][1][0], self.pp[0][0][0]+10, self.pp[0][1][0]+10, fill='firebrick4')
+        #canvas.create_oval(self.pp[1][0][0], self.pp[1][1][0], self.pp[1][0][0]+10, self.pp[1][1][0]+10, fill='gold')
+        #canvas.create_oval(self.pp[2][0][0], self.pp[2][1][0], self.pp[2][0][0]+10, self.pp[2][1][0]+10, fill='green2')
     
     #def __lt__(self,other) -> bool:
     #    return self.isFurtherThan(other)
 
-    def test(self, other):
-        if self.getMinZ() >= other.getMaxZ(): return True
+
+
+    def isFurtherThan(self,other):
+        #if not self.isProjectionOverlaping(other): return False
+       
         if self.getMaxZ() <= other.getMinZ(): return False
+        if self.getMinZ() >= other.getMaxZ(): return True
 
         
-        i=0
-        for p in other.points3D:
-            if (np.dot(self.normal, p) - self.d > 0) == self.front or np.dot(self.normal, p) - self.d == 0: i += 1
-        if i == 4:return True
-        if i == 0:return False
 
-        i=0
-        for p in self.points3D:
-            if (np.dot(other.normal, p) - other.d > 0) == other.front or np.dot(other.normal, p) - other.d == 0: i += 1
-        if i == 4:return False
-        if i == 0:return True
-
-        print('error: order of two quads cannot be calculated!')
-        print(self)
-        print(other)
-        return False
-
-    def isCloserThan(self,other) -> bool:
-        if round(self.getMaxZ(),3) <= round(other.getMinZ(), 2): return True
-        if round(self.getMinZ(),3) >= round(other.getMaxZ(), 2): return False
-
-
-        
         f1 = 0
         b1 = 0
         for p in other.points3D:
@@ -138,30 +123,57 @@ class Quad:
         if f2 == 4: return False
         if b2 == 4: return True
 
-        print('error: order of two quads cannot be calculated!')
-        print('Quad 1: ' + self.color)
-        print(self.points3D)
-        print('Normal vector: ' + str(self.normal) + ', d=' + str(self.d))
-        print('Point 0 of quad 2 in front of quad 1? ' + str(self.isPointInFront(other.points3D[0])))
-        print('Point 0 of quad 2 in behind quad 1? ' + str(self.isPointBehind(other.points3D[0])))
-        print('\n')
-        print('Quad 2: ' + other.color)
-        print(other.points3D)
-        print('Normal vector: ' + str(other.normal) + ', d=' + str(other.d))
-        print('\n')
-        print('c1: ' + self.color + ', c2: ' + other.color)
-        print('1:(' + str(f1) + ', ' + str(b1) + '), 2:(' + str(f2) + ', ' + str(b2) + ')')
-        print('\n')
-        return self.getMinZ() < other.getMinZ()
 
+        return self.getMinZ() > other.getMinZ()
+
+    def isProjectionOverlaping(self,other):
+        # check if projections overlap
+        if not self.isBoundingBoxOverlaping(other): return False
+        if self.isContainedIn(other): return True
+        if other.isContainedIn(self): return True
+        if not self.isQuadOverlaping(other) : return False 
+        return True
+
+    def isBoundingBoxOverlaping(self, value: "Quad") -> bool:
+        #return not (((self.getProjectedMaxY() <= value.getProjectedMinY()) or (self.getProjectedMinY() >= value.getProjectedMaxY()))) and (((self.getProjectedMaxX() <= value.getProjectedMinX()) or (self.getProjectedMinX() >= value.getProjectedMaxX())))
+        return (self.getProjectedMaxX() >= value.getProjectedMinX() and value.getProjectedMaxX() >= self.getProjectedMinX()) and (self.getProjectedMaxY() >= value.getProjectedMinY() and value.getProjectedMaxY() >= self.getProjectedMinY())
+
+    def isQuadOverlaping(self, other: "Quad") -> bool:
+        for A, B in [(self.pp[0], self.pp[1]), (self.pp[1], self.pp[2]), (self.pp[2], self.pp[3]), (self.pp[3], self.pp[0])]:
+            tmp = 0.00001
+            if not(B[0][0] - A[0][0] == 0): tmp = B[0][0] - A[0][0]
+            m1 = (B[1][0] - A[1][0]) / tmp
+            b1 = A[1][0] - m1 * A[0][0]
+            for C, D in [(other.pp[0], other.pp[1]), (other.pp[1], other.pp[2]), (other.pp[2], other.pp[3]), (other.pp[3], other.pp[0])]:
+                tmp = 0.00001
+                if not(D[0][0] - C[0][0] == 0): tmp= D[0][0] - C[0][0]
+                m2 = (D[1][0] - C[1][0]) / tmp
+                b2 = C[1][0] - m2 * C[0][0]
+
+                if abs(m1 - m2) < 10e-4: continue
+                tmp = 0.00001
+                if not(m1-m2 == 0): tmp = m1-m2
+                x_intersect=((b2-b1)/tmp)
+                y_intersect=(m1*x_intersect)+b1
+
+                if (x_intersect < A[0][0] and x_intersect > B[0][0]) or (x_intersect > A[0][0] and x_intersect < B[0][0]) and\
+                (y_intersect < A[1][0] and y_intersect > B[1][0]) or (y_intersect > A[1][0] and y_intersect < B[1][0]) and\
+                (x_intersect < C[0][0] and x_intersect > D[0][0]) or (x_intersect > C[0][0] and x_intersect < D[0][0]) and\
+                (y_intersect < C[1][0] and y_intersect > D[1][0]) or (y_intersect > C[1][0] and y_intersect < D[1][0]):
+                    return True
     
-    def isBoundingBoxOverlaping(self, value: object) -> bool:
-        return ((self.getProjectedMaxY() <= value.getMinY()) or (self.getProjectedMinY >= value.getMaxY())) or ((self.getProjectedMaxX() <= value.getMinX()) or (self.getProjectedMinX >= value.getMaxX()))
-        #return self.getMaxZ() == value.getMaxZ()
-        #return sorted(self.points3D) == sorted(value.points3D)
+    def isContainedIn(self, other: "Quad") -> bool:
+        return (self.getProjectedMinX() >= other.getProjectedMinX() and self.getProjectedMaxX() <= other.getProjectedMaxX()) and (self.getProjectedMinY() >= other.getProjectedMinY() and self.getProjectedMaxY() <= other.getProjectedMaxY())
+
+
+
+        
     
     def __str__(self) -> str:
-        return " " + self.color + " (" + str(self.getMinZ()) + ", " + str(self.getMaxZ()) + ") "# + str(self.normal)
+        return " " + self.color + ", normal=" + str(self.normal) + " " + str(self.d) + ", X range: (" + str(self.getProjectedMinX()) + ', ' + str(self.getProjectedMaxX()) + '), Y range: (' + str(self.getProjectedMinY()) + ', ' + str(self.getProjectedMaxY()) + ')'
+    
+    
+    #" (" + str(self.getMinZ()) + ", " + str(self.getMaxZ()) + ") "# + str(self.normal)
     
 
 

@@ -16,7 +16,6 @@ b = p[2] - p[0]
 print(b)
 n = np.cross(a,b)
 print(n)
-print(n * -1)
 d = np.dot(p[0],n)
 print(d)
 

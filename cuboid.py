@@ -61,10 +61,6 @@ class Cuboid:
             quads.append(Quad(np.array([(self.points[0].T).reshape(-1)[0:3], (self.points[1].T).reshape(-1)[0:3], (self.points[3].T).reshape(-1)[0:3], (self.points[2].T).reshape(-1)[0:3] ]),
                           np.array([self.pp[0], self.pp[1], self.pp[3], self.pp[2]]),
                           color=color))
-        if self.checkZ(0,1,5,4):
-            quads.append(Quad(np.array([(self.points[0].T).reshape(-1)[0:3], (self.points[1].T).reshape(-1)[0:3], (self.points[5].T).reshape(-1)[0:3], (self.points[4].T).reshape(-1)[0:3] ]),
-                          np.array([self.pp[0], self.pp[1], self.pp[5], self.pp[4]]),
-                          color=color))
         if self.checkZ(1,5,7,3):
             quads.append(Quad(np.array([(self.points[1].T).reshape(-1)[0:3], (self.points[5].T).reshape(-1)[0:3], (self.points[7].T).reshape(-1)[0:3], (self.points[3].T).reshape(-1)[0:3] ]),
                           np.array([self.pp[1], self.pp[5], self.pp[7], self.pp[3]]),
@@ -73,13 +69,17 @@ class Cuboid:
             quads.append(Quad(np.array([(self.points[3].T).reshape(-1)[0:3], (self.points[7].T).reshape(-1)[0:3], (self.points[6].T).reshape(-1)[0:3], (self.points[2].T).reshape(-1)[0:3] ]),
                           np.array([self.pp[3], self.pp[7], self.pp[6], self.pp[2]]),
                           color=color))
-        if self.checkZ(0,4,6,2):
-            quads.append(Quad(np.array([(self.points[0].T).reshape(-1)[0:3], (self.points[4].T).reshape(-1)[0:3], (self.points[6].T).reshape(-1)[0:3], (self.points[2].T).reshape(-1)[0:3] ]),
-                          np.array([self.pp[0], self.pp[4], self.pp[6], self.pp[2]]),
+        if self.checkZ(2,6,4,0):
+            quads.append(Quad(np.array([(self.points[2].T).reshape(-1)[0:3], (self.points[6].T).reshape(-1)[0:3], (self.points[4].T).reshape(-1)[0:3], (self.points[0].T).reshape(-1)[0:3] ]),
+                          np.array([self.pp[2], self.pp[6], self.pp[4], self.pp[0]]),
                           color=color))
-        if self.checkZ(4,5,7,6):
-            quads.append(Quad(np.array([(self.points[4].T).reshape(-1)[0:3], (self.points[5].T).reshape(-1)[0:3], (self.points[7].T).reshape(-1)[0:3], (self.points[6].T).reshape(-1)[0:3] ]),
-                          np.array([self.pp[4], self.pp[5], self.pp[7], self.pp[6]]),
+        if self.checkZ(0,4,5,1):
+            quads.append(Quad(np.array([(self.points[0].T).reshape(-1)[0:3], (self.points[4].T).reshape(-1)[0:3], (self.points[5].T).reshape(-1)[0:3], (self.points[1].T).reshape(-1)[0:3] ]),
+                          np.array([self.pp[0], self.pp[4], self.pp[5], self.pp[1]]),
+                          color=color))
+        if self.checkZ(6,7,5,4):
+            quads.append(Quad(np.array([(self.points[6].T).reshape(-1)[0:3], (self.points[7].T).reshape(-1)[0:3], (self.points[5].T).reshape(-1)[0:3], (self.points[4].T).reshape(-1)[0:3] ]),
+                          np.array([self.pp[6], self.pp[7], self.pp[5], self.pp[4]]),
                           color=color))
         return quads
     
