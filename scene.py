@@ -48,27 +48,11 @@ class Scene():
         quadsFacingCamera = []
         for  q in quads:
             if q.facingCamera: quadsFacingCamera.append(q)
-       
+
+        
         sorted = quadsFacingCamera
         sorted.sort(key=lambda x:x.maxz, reverse=True)
         
-        #for i,q in enumerate(sorted):
-        #    
-        #    j = i+1
-        #    while j < len(sorted):
-        #         
-        #        if q.isProjectionOverlaping(sorted[j]) and not q.isFurtherThan(sorted[j]):
-        #            
-        #            print('Wrong order:\n'+ str(i)+ '. ' + str(q) +'\n'+ str(j) + '. ' + str(sorted[j]))
-        #            print('BB overlap? : ' + str(q.isBoundingBoxOverlaping(sorted[j])))
-        #            print('Lines overlap? : ' + str(q.isQuadOverlaping(sorted[j])))
-#
-        #        j+=1
-
-            
-
-        
-
         self.quads = sorted
         #print(quads)
 

@@ -6,7 +6,7 @@ from quad import Quad
 
 class Cuboid:
     
-    def __init__(self, x, y, z, width, height, deepth, color='red') -> None:
+    def __init__(self, x, y, z, width, height, deepth, color=(1,0,0)) -> None:
         #self.x = x
         #self.y = y
         #self.z = z

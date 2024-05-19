@@ -11,13 +11,13 @@ window.geometry("" + str(WIDTH) + "x" + str(HEIGHT))
 canvas = tk.Canvas(window, bg='grey75', width=WIDTH, height=HEIGHT)
 canvas.pack()
 
-c1 = c.Cuboid(15, -30, 45, 20,20,20, 'red')
-c2 = c.Cuboid(-30, -20, 40, 20,30,40, 'green')
-c3 = c.Cuboid(10, -25, 80, 50,40,20, 'blue')
-c4 = c.Cuboid(-35, -30, 100, 20,20,20, 'orange')
+c1 = c.Cuboid(15, -30, 45, 20,20,20, (1,0,0))
+c2 = c.Cuboid(-30, -20, 40, 20,30,40, (0.0705, 0.7804, 0.0078))
+c3 = c.Cuboid(10, -25, 80, 50,40,20, (0.0820, 0.875, 0.9179))
+c4 = c.Cuboid(-35, -30, 100, 20,20,20, (0.9179, 0.75, 0.0820))
 
 
-scene = Scene([ c3, c4], canvas, HEIGHT, WIDTH)
+scene = Scene([c1, c2, c3, c4], canvas, HEIGHT, WIDTH)
 scene.render()
 
 def mv_up(event):
