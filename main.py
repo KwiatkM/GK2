@@ -1,6 +1,7 @@
 import tkinter as tk
 import cuboid as c
 from scene import Scene
+import transformations as t
 
 WIDTH = 800
 HEIGHT = 800
@@ -16,8 +17,27 @@ c2 = c.Cuboid(-30, -20, 40, 20,30,40, (0.0705, 0.7804, 0.0078))
 c3 = c.Cuboid(10, -25, 80, 50,40,20, (0.0820, 0.875, 0.9179))
 c4 = c.Cuboid(-35, -30, 100, 20,20,20, (0.9179, 0.75, 0.0820))
 
+c5 = c.Cuboid(-60, -100, 45, 120,10,120, (0.894, 0.102, 0.11), divX=6, divY=2, divZ=6)
+c5.applyTransformation(t.rotateXcw())
+c5.applyTransformation(t.rotateXcw())
+c5.applyTransformation(t.rotateXcw())
+c5.applyTransformation(t.rotateXcw())
+c5.applyTransformation(t.rotateXcw())
+c5.applyTransformation(t.rotateXcw())
+c5.applyTransformation(t.rotateXcw())
 
-scene = Scene([c1, c2, c3, c4], canvas, HEIGHT, WIDTH)
+c6 = c.Cuboid(-60, -80, 60, 120,10,120, (0.216, 0.494, 0.722), divX=6, divY=2, divZ=6)
+c6.applyTransformation(t.rotateXcw())
+c6.applyTransformation(t.rotateXcw())
+c6.applyTransformation(t.rotateXcw())
+c6.applyTransformation(t.rotateXcw())
+c6.applyTransformation(t.rotateXcw())
+c6.applyTransformation(t.rotateXcw())
+c6.applyTransformation(t.rotateXcw())
+
+
+#scene = Scene([c1, c2, c3, c4], canvas, HEIGHT, WIDTH)
+scene = Scene([c5, c6], canvas, HEIGHT, WIDTH)
 scene.render()
 
 def mv_up(event):

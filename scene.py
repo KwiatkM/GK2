@@ -40,30 +40,25 @@ class Scene():
     def render(self):
         quads = []
         for c in self.cuboids:
-            c.project(self.projection_matrix, self.cam_height, self.cam_width)
-            quads.extend(c.getQuads())
-        
-        #print(quads)
-        #quads.sort(reverse=True) # !!!!!!!!!
-        quadsFacingCamera = []
-        for  q in quads:
-            if q.facingCamera: quadsFacingCamera.append(q)
+            quads.extend([q for q in c.getQuads() if q.facingCamera])
 
-        
-        sorted = quadsFacingCamera
-        sorted.sort(key=lambda x:x.maxz, reverse=True)
-        
-        self.quads = sorted
-        #print(quads)
+        quadlets = []
+        for q in quads:
+            q.createPoitMatrix()
+            q.project(self.projection_matrix, self.cam_height, self.cam_width)
+            if q.isZinRange:
+                quadlets.extend(q.getQuadlets())
 
-        for i,q in enumerate(sorted):
-            #print('' + str(i) +'. '+ str(q) + ' ' + str(q.getMaxZ()))
-            #input()
+        quadlets.sort(key=lambda x:x.z, reverse=True)
+        
+        self.quads = quadlets
+
+        for q in quadlets:
             q.draw(self.canvas)
             
-
         self.canvas.create_text(35,10,text='fov: ' + str(round((self.fov * (360/(2*pi))), 2)))
     
+
     def refresh(self):
         self.canvas.delete("all")
         self.render()

@@ -15,92 +15,97 @@ class Quadlet():
 
 class Quad:
     
-    def __init__(self, points3D:np.ndarray, pp:np.ndarray,  color=(1,0,0)) -> None:
-        # points3D = 4 points (in order) in camera coordinates that form a quad
-        # for each point: 
-        #   first element = x
-        #   second element = y
-        #   third element = z
-        self.points3D = points3D
-        self.pp = pp
-        
+    def __init__(self, borderPoints:np.ndarray,  color=(1,0,0), div0 = 0, div1 = 0) -> None:
+        self.borderPoints = borderPoints
+        self.div0 = div0
+        self.div1 = div1
+
         #Ax + By + Cz + D = 0
-        self.normal = np.cross(points3D[1] - points3D[0],points3D[2] - points3D[0])
-        self.d = -np.dot(points3D[0], self.normal)
-        normal_len = np.sqrt( self.normal[0]*self.normal[0] + self.normal[1]*self.normal[1] + self.normal[2]*self.normal[2])
+        self.normal = np.cross((borderPoints[1] - borderPoints[0])[0:3],(borderPoints[2] - borderPoints[0])[0:3])
+        self.d = -np.dot(borderPoints[0][0:3], self.normal)
+        normal_len = np.sqrt( np.dot(self.normal, self.normal))
         self.normal = self.normal/normal_len
         self.d = self.d/normal_len
 
         self.facingCamera = False
         if self.d > 0:
             self.facingCamera = True
-        self.maxz = self.getMaxZ()
+        self.isZinRange = True
 
-        self.color = darkenColor(color, self.normal)
-
-    def getMaxZ(self) -> float:
-        zmax = -999.9
-        for p in self.points3D:
-            if p[2] > zmax:
-                zmax = p[2]
-        return zmax
-
-    def getMinZ(self)-> float:
-        zmin = 999999.9
-        for p in self.points3D:
-            if p[2] < zmin:
-                zmin = p[2]
-        return zmin
-
-    
-    
-    def draw(self, canvas:Canvas):
-        canvas.create_polygon(self.pp[0][0][0], self.pp[0][1][0],
-                              self.pp[1][0][0], self.pp[1][1][0],
-                              self.pp[2][0][0], self.pp[2][1][0],
-                              self.pp[3][0][0], self.pp[3][1][0],
-                              fill=self.color)
-        #canvas.create_line(self.pp[0][0][0], self.pp[0][1][0], self.pp[1][0][0], self.pp[1][1][0], fill='black', width=1)
-        #canvas.create_line(self.pp[1][0][0], self.pp[1][1][0], self.pp[2][0][0], self.pp[2][1][0], fill='black', width=1)
-        #canvas.create_line(self.pp[2][0][0], self.pp[2][1][0], self.pp[3][0][0], self.pp[3][1][0], fill='black', width=1)
-        #canvas.create_line(self.pp[3][0][0], self.pp[3][1][0], self.pp[0][0][0], self.pp[0][1][0], fill='black', width=1)
-        #canvas.create_oval(self.pp[0][0][0], self.pp[0][1][0], self.pp[0][0][0]+10, self.pp[0][1][0]+10, fill='firebrick4')
-        #canvas.create_oval(self.pp[1][0][0], self.pp[1][1][0], self.pp[1][0][0]+10, self.pp[1][1][0]+10, fill='gold')
-        #canvas.create_oval(self.pp[2][0][0], self.pp[2][1][0], self.pp[2][0][0]+10, self.pp[2][1][0]+10, fill='green2')
-    
-    #def __lt__(self,other) -> bool:
-    #    return self.isFurtherThan(other)
-
-    def divideQuad(self, cutLen:int) -> list[Quadlet]:
-        len0to1 = np.sqrt(np.dot(self.points3D[0], self.points3D[1]))
-        len1to2 = np.sqrt(np.dot(self.points3D[1], self.points3D[2]))
-        divCount0to1 = np.floor(len0to1 / cutLen)
-        divCount1to2 = np.floor(len1to2 / cutLen)
-        if divCount0to1 == 0: divCount0to1 = 1
-        if divCount1to2 == 0: divCount1to2 = 1
-        step0to1 = len0to1 / divCount0to1
-        step1to2 = len1to2 / divCount1to2
+        self.color = self.darkenColor(color)
         
+
+    def createPoitMatrix(self):
+        v0to1 = self.borderPoints[1] - self.borderPoints[0]
+        v1to2 = self.borderPoints[2] - self.borderPoints[1]
+        nOf0 = self.div0 + 1
+        nOf1 = self.div1 + 1
+        step0 = v0to1/nOf0
+        step1 = v1to2/nOf1
+        pointMatrix = np.zeros((nOf1+1, nOf0+1, 4))
+
+        for i in range(nOf1+1):
+            for j in range(nOf0+1):
+                pointMatrix[i][j] = self.borderPoints[0] + (i * step1) + (j * step0)
+
+        self.pointMatrix = pointMatrix
+
+
+    def project(self, projection:np.ndarray, canvas_height, canvas_width):
+        self
+        p = np.zeros(self.pointMatrix.shape)
+        for i in range(self.pointMatrix.shape[0]):
+            for j in range(self.pointMatrix.shape[1]):
+                p[i][j] = projection.dot(self.pointMatrix[i][j])
+                if p[i][j][3] == 0: p[i][j] = np.array([float('inf'), float('inf'), float('inf'), 1])
+                p[i][j] = p[i][j] / p[i][j][3]
+                p[i][j][0] = (p[i][j][0] * canvas_width/2) + canvas_width/2
+                p[i][j][1] = (-p[i][j][1] * canvas_height/2) + canvas_height/2
+                #print(p[i][j])
+                if p[i][j][2] < 0 or p[i][j][2] > 1.0: self.isZinRange = False
+            #print("------------------")
+        self.projectedPoints = p
+    
+
+    def getQuadlets(self) -> list[Quadlet]:
         quadlets = []
-        
+        for i in range(self.projectedPoints.shape[0]-1):
+            for j in range(self.projectedPoints.shape[1]-1):
+                quadlets.append(Quadlet([self.projectedPoints[i][j][0:2], self.projectedPoints[i][j+1][0:2], self.projectedPoints[i+1][j+1][0:2], self.projectedPoints[i+1][j][0:2]],
+                                        (self.pointMatrix[i][j][2] + self.pointMatrix[i+1][j+1][2])/2,
+                                         color=self.color ))
+        return quadlets
+    
+    def darkenColor(self, rgbTuple):
+        hsv = colorsys.rgb_to_hsv(rgbTuple[0], rgbTuple[1], rgbTuple[2])
+        cos = -np.dot(self.normal, np.array([0,0,1]))
+        if cos<=0.0: cos = 0.0
+        rgb = colorsys.hsv_to_rgb(hsv[0], hsv[1], hsv[2]*((cos * 0.2) + 0.8))
+        return '#%02x%02x%02x' % (round(rgb[0] * 255), round(rgb[1] * 255), round(rgb[2] * 255))
+    
+    def copyColor(self, rgbTuple):
+        return '#%02x%02x%02x' % (round(rgbTuple[0] * 255), round(rgbTuple[1] * 255), round(rgbTuple[2] * 255))
 
     
-        
     
-    def __str__(self) -> str:
-        return " " + self.color + ", normal=" + str(self.normal) + " " + str(self.d) + ", X range: (" + str(self.getProjectedMinX()) + ', ' + str(self.getProjectedMaxX()) + '), Y range: (' + str(self.getProjectedMinY()) + ', ' + str(self.getProjectedMaxY()) + ')'
+class Quadlet():
     
-    
-    #" (" + str(self.getMinZ()) + ", " + str(self.getMaxZ()) + ") "# + str(self.normal)
-    
+    def __init__(self, projectedPoints:np.ndarray, z, color:str) -> None:
+        self.projectedPoints = projectedPoints
+        self.z = z
+        self.color = color
 
+    def draw(self, canvas:Canvas):
+        canvas.create_polygon(self.projectedPoints[0][0], self.projectedPoints[0][1],
+                              self.projectedPoints[1][0], self.projectedPoints[1][1],
+                              self.projectedPoints[2][0], self.projectedPoints[2][1],
+                              self.projectedPoints[3][0], self.projectedPoints[3][1],
+                              fill=self.color)
+        canvas.create_line(self.projectedPoints[0][0], self.projectedPoints[0][1], self.projectedPoints[1][0], self.projectedPoints[1][1], fill='black', width=1)
+        canvas.create_line(self.projectedPoints[1][0], self.projectedPoints[1][1], self.projectedPoints[2][0], self.projectedPoints[2][1], fill='black', width=1)
+        canvas.create_line(self.projectedPoints[2][0], self.projectedPoints[2][1], self.projectedPoints[3][0], self.projectedPoints[3][1], fill='black', width=1)
+        canvas.create_line(self.projectedPoints[3][0], self.projectedPoints[3][1], self.projectedPoints[0][0], self.projectedPoints[0][1], fill='black', width=1)
 
-def darkenColor(rgbTuple, normalVector):
-    hsv = colorsys.rgb_to_hsv(rgbTuple[0], rgbTuple[1], rgbTuple[2])
-    cos = -np.dot(normalVector, np.array([0,0,1]))
-    if cos<=0.3: cos = 0.3
-    rgb = colorsys.hsv_to_rgb(hsv[0], hsv[1], hsv[2]*cos)
-    return '#%02x%02x%02x' % (round(rgb[0] * 255), round(rgb[1] * 255), round(rgb[2] * 255))
 
 
 
